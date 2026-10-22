@@ -196,13 +196,18 @@
 
     <script>
         // ================================================================
-        // ❌ นำ URL Web App ของคุณมาใส่ที่นี่
+        // URL Web App ของ Google Apps Script (Code.gs)
         // ================================================================
-        const scriptURL = 'นำ URL Web App ของคุณมาใส่ที่นี่';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbym-6gJV2s3QSq20K4ayd4W4F3x3kj05CG6EUYMmlXbcxMKGktselZvFCCOkZqrZzxQ/exec';
         // ================================================================
 
         let allData = [];
         let currentUser = null; // สภาพผู้ใช้งานปัจจุบัน
+
+        // กันข้อความที่ผู้ใช้พิมพ์มาไม่ให้กลายเป็นโค้ด HTML บนหน้าเว็บ
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
 
          // ระบบเลื่อนหน้าจอเมื่อคลิกเมนู
         document.querySelectorAll('nav a').forEach(anchor => {
@@ -268,7 +273,7 @@
             const logoutBtn = document.getElementById('logout-btn');
 
             if (currentUser) {
-                statusText.innerHTML = `👤 เข้าสู่ระบบโดย: <b>${currentUser.fullName}</b> (สิทธิ์: ${currentUser.role})`;
+                statusText.innerHTML = `👤 เข้าสู่ระบบโดย: <b>${escapeHtml(currentUser.fullName)}</b> (สิทธิ์: ${escapeHtml(currentUser.role)})`;
                 logoutBtn.style.display = 'inline-block';
 
                 // ถ้านักเรียนล็อกอิน ให้เติมชื่อในฟอร์มให้อัตโนมัติ
@@ -316,12 +321,12 @@
 
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td>${dateStr}</td>
-                        <td>${item.studentName}</td>
-                        <td>${item.studentClass}</td>
-                        <td>${formattedLoseTime}</td>
-                        <td>${item.location}</td>
-                        <td>${item.tel}</td>
+                        <td>${escapeHtml(dateStr)}</td>
+                        <td>${escapeHtml(item.studentName)}</td>
+                        <td>${escapeHtml(item.studentClass)}</td>
+                        <td>${escapeHtml(formattedLoseTime)}</td>
+                        <td>${escapeHtml(item.location)}</td>
+                        <td>${escapeHtml(item.tel)}</td>
                         <td style="white-space: nowrap;">
                             <button class="action-btn" onclick="editData(${index})">✏️ แก้ไข</button>
                             <button class="action-btn btn-danger" onclick="deleteData(${item.rowNumber})">🗑️ ลบ</button>
@@ -379,6 +384,7 @@
         document.getElementById('shoe-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             const formData = new FormData(this);
+            if (currentUser) formData.append('token', currentUser.token);
             try {
                 const response = await fetch(scriptURL, { method: 'POST', body: formData });
                 const result = await response.json();
@@ -386,6 +392,8 @@
                     alert('✅ ' + result.msg);
                     resetForm();
                     loadData();
+                } else {
+                    alert('❌ ' + result.msg);
                 }
             } catch (error) {
                 alert('❌ ไม่สามารถบันทึกข้อมูลได้');
@@ -399,6 +407,7 @@
             const formData = new FormData();
             formData.append('action', 'delete');
             formData.append('rowNumber', rowNumber);
+            formData.append('token', currentUser.token);
 
             try {
                 const response = await fetch(scriptURL, { method: 'POST', body: formData });
@@ -406,6 +415,8 @@
                 if (result.result === "success") {
                     alert('🗑️ ลบข้อมูลเรียบร้อยแล้ว');
                     loadData();
+                } else {
+                    alert('❌ ' + result.msg);
                 }
             } catch (error) {
                 alert('❌ ลบข้อมูลไม่สำเร็จ');
