@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบตามหารองเท้าหาย</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Sarabun', sans-serif; line-height: 1.6; color: #333; background-color: #f8f9fa; }
+        header { background-color: #343a40; color: #fff; text-align: center; padding: 2rem 1rem; }
+        header h1 { font-size: 2rem; color: #f57c00; }
+
+        /* User Bar */
+        .user-bar { background-color: #212529; color: #fff; padding: 0.5rem 1.5rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
+
+        nav { background-color: #495057; position: sticky; top: 0; z-index: 1000; }
+        nav ul { list-style: none; display: flex; justify-content: center; flex-wrap: wrap; }
+        nav li a { display: block; color: #fff; text-decoration: none; padding: 0.8rem 1.2rem; font-weight: 600; }
+        nav li a:hover { background-color: #f57c00; }
+
+        main { max-width: 1000px; margin: 1.5rem auto; padding: 0 1rem; }
+        section { background-color: #fff; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+        section h2 { color: #343a40; font-size: 1.4rem; border-bottom: 3px solid #f57c00; padding-bottom: 0.4rem; margin-bottom: 1rem; }
+
+        form { display: flex; flex-direction: column; gap: 0.8rem; }
+        label { font-weight: 600; color: #495057; }
+        input[type="text"], input[type="password"], input[type="time"], select {
+            width: 100%; padding: 0.6rem; border: 1px solid #ced4da; border-radius: 4px; font-family: 'Sarabun', sans-serif;
+        }
+
+        button { background-color: #f57c00; color: #fff; border: none; padding: 0.6rem 1rem; font-weight: 600; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #e65100; }
+        .btn-secondary { background-color: #6c757d; }
+        .btn-secondary:hover { background-color: #495057; }
+        .btn-danger { background-color: #dc3545; }
+        .btn-danger:hover { background-color: #c82333; }
+
+        /* Auth Container Layout */
+        .auth-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        @media (max-width: 768px) { .auth-grid { grid-template-columns: 1fr; } }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .action-btn { padding: 3px 6px; font-size: 0.85rem; margin-right: 3px; }
+
+        footer { background-color: #212529; color: #adb5bd; text-align: center; padding: 1rem; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+
+    <!-- แถบแสดงสถานะสมาชิกด้านบนสุด -->
+    <div class="user-bar">
+        <span id="user-status-text">👤 สถานะ: บุคคลทั่วไป</span>
+        <button id="logout-btn" class="btn-danger" style="display:none; padding: 2px 8px; font-size: 0.8rem;" onclick="logout()">ออกจากระบบ</button>
+    </div>
+
+    <header>
+        <h1>ระบบตามหารองเท้าหาย</h1>
+        <p>โรงเรียนมัธยมสาธิตมหาวิทยาลัยนเรศวร</p>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#home">หน้าแรก</a></li>
+            <li><a href="#auth-section">เข้าสู่ระบบ / สมัครสมาชิก</a></li>
+            <li><a href="#find">แจ้งเหตุรองเท้าหาย</a></li>
+            <li><a href="#data-list">รายการรองเท้าหาย</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section id="home">
+            <h2>ยินดีต้อนรับ</h2>
+            <p>นักเรียนและอาจารย์สามารถแจ้งรองเท้าหาย และตรวจสอบสถานะผ่านระบบออนไลน์ได้ตลอด 24 ชั่วโมง</p>
+        </section>
+
+        <!-- ส่วนสมัครสมาชิกและเข้าสู่ระบบ -->
+        <section id="auth-section">
+            <div class="auth-grid">
+                <!-- ฟอร์มเข้าสู่ระบบ -->
+                <div>
+                    <h2>🔑 เข้าสู่ระบบ</h2>
+                    <form id="login-form">
+                        <div>
+                            <label>Username</label>
+                            <input type="text" id="login-username" required>
+                        </div>
+                        <div>
+                            <label>Password</label>
+                            <input type="password" id="login-password" required>
+                        </div>
+                        <button type="submit">เข้าสู่ระบบ</button>
+                    </form>
+                </div>
+
+                <!-- ฟอร์มสมัครสมาชิก -->
+                <div>
+                    <h2>📝 สมัครสมาชิก</h2>
+                    <form id="register-form">
+                        <div>
+                            <label>ชื่อ-นามสกุล</label>
+                            <input type="text" id="reg-fullname" required>
+                        </div>
+                        <div>
+                            <label>Username</label>
+                            <input type="text" id="reg-username" required>
+                        </div>
+                        <div>
+                            <label>Password</label>
+                            <input type="password" id="reg-password" required>
+                        </div>
+                        <button type="submit" class="btn-secondary">ลงทะเบียนสมาชิก</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- แบบฟอร์มแจ้งเหตุ -->
+        <section id="find">
+            <h2 id="form-title">แบบฟอร์มส่งแจ้งเหตุรองเท้าหาย</h2>
+
+            <form id="shoe-form">
+                <input type="hidden" id="action" name="action" value="create">
+                <input type="hidden" id="rowNumber" name="rowNumber" value="">
+
+                <div>
+                    <label for="student-name">ชื่อ-นามสกุล ผู้แจ้ง</label>
+                    <input type="text" id="student-name" name="student_name" placeholder="ระบุชื่อและนามสกุล" required>
+                </div>
+
+                <div>
+                    <label for="student-class">ระดับชั้น</label>
+                    <select id="student-class" name="student_class">
+                        <option value="มัธยมศึกษาปีที่ 3.1">มัธยมศึกษาปีที่ 3.1</option>
+                        <option value="มัธยมศึกษาปีที่ 3.2">มัธยมศึกษาปีที่ 3.2</option>
+                        <option value="มัธยมศึกษาปีที่ 3.3">มัธยมศึกษาปีที่ 3.3</option>
+                        <option value="มัธยมศึกษาปีที่ 3.4">มัธยมศึกษาปีที่ 3.4</option>
+                        <option value="มัธยมศึกษาปีที่ 3.5">มัธยมศึกษาปีที่ 3.5</option>
+                        <option value="มัธยมศึกษาปีที่ 3.6">มัธยมศึกษาปีที่ 3.6</option>
+                        <option value="มัธยมศึกษาปีที่ 3.7">มัธยมศึกษาปีที่ 3.7</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="lose-time">ช่วงเวลาที่รองเท้าหาย</label>
+                    <input type="time" id="lose-time" name="lose_time" required>
+                </div>
+
+                <div>
+                    <label for="student-shoe">สถานที่ที่รองเท้าหาย</label>
+                    <input type="text" id="student-shoe" name="student_shoe" placeholder="ระบุสถานที่" required>
+                </div>
+                <div>
+                    <label for="student-tel">เบอร์โทร</label>
+                    <input type="text" id="student-tel" name="student_tel" placeholder="เบอร์โทร" required>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 5px;">
+                    <button type="submit" id="submit-btn" style="flex: 1;">ส่งข้อมูลแจ้งรองเท้าหาย</button>
+                    <button type="button" class="btn-secondary" onclick="resetForm()" style="flex: 1;">ยกเลิก/ล้างข้อมูล</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- รายการข้อมูล -->
+        <section id="data-list">
+            <h2>รายการแจ้งรองเท้าหาย</h2>
+            <button onclick="loadData()" style="margin-bottom:10px;">🔄 รีเฟรชข้อมูล</button>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>เวลาที่แจ้ง</th>
+                            <th>ชื่อ-นามสกุล</th>
+                            <th>ระดับชั้น</th>
+                            <th>เวลาที่หาย</th>
+                            <th>สถานที่</th>
+                            <th>เบอร์โทร</th>
+                            <th>จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="data-table-body">
+                        <tr><td colspan="7" style="text-align: center;">กำลังโหลดข้อมูล...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>วิชาวิทยาการคำนวณ 3 ระดับชั้นมัธยมศึกษาปีที่ 3</p>
+    </footer>
+
+    <script>
+        // ================================================================
+        // ❌ นำ URL Web App ของคุณมาใส่ที่นี่
+        // ================================================================
+        const scriptURL = 'นำ URL Web App ของคุณมาใส่ที่นี่';
+        // ================================================================
+
+        let allData = [];
+        let currentUser = null; // สภาพผู้ใช้งานปัจจุบัน
+
+         // ระบบเลื่อนหน้าจอเมื่อคลิกเมนู
+        document.querySelectorAll('nav a').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                if(targetElement) targetElement.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        // 1. ระบบเข้าสู่ระบบ (Login)
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('action', 'login');
+            formData.append('username', document.getElementById('login-username').value);
+            formData.append('password', document.getElementById('login-password').value);
+
+            try {
+                const res = await fetch(scriptURL, { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.result === 'success') {
+                    currentUser = data.user;
+                    updateUserUI();
+                    alert(`✅ เข้าสู่ระบบสำเร็จ! ยินดีต้อนรับคุณ ${currentUser.fullName}`);
+                    document.getElementById('login-form').reset();
+                } else {
+                    alert('❌ ' + data.msg);
+                }
+            } catch (err) {
+                alert('❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+            }
+        });
+
+        // 2. ระบบสมัครสมาชิก (Register)
+        document.getElementById('register-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('action', 'register');
+            formData.append('fullName', document.getElementById('reg-fullname').value);
+            formData.append('username', document.getElementById('reg-username').value);
+            formData.append('password', document.getElementById('reg-password').value);
+            formData.append('role', 'user'); // ค่าเริ่มต้นเป็น user ปกติ
+
+            try {
+                const res = await fetch(scriptURL, { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.result === 'success') {
+                    alert('✅ สมัครสมาชิกสำเร็จ! สามารถเข้าสู่ระบบได้ทันที');
+                    document.getElementById('register-form').reset();
+                } else {
+                    alert('❌ ' + data.msg);
+                }
+            } catch (err) {
+                alert('❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+            }
+        });
+
+        // 3. ปรับเปลี่ยน UI ตามสถานะ Login
+        function updateUserUI() {
+            const statusText = document.getElementById('user-status-text');
+            const logoutBtn = document.getElementById('logout-btn');
+
+            if (currentUser) {
+                statusText.innerHTML = `👤 เข้าสู่ระบบโดย: <b>${currentUser.fullName}</b> (สิทธิ์: ${currentUser.role})`;
+                logoutBtn.style.display = 'inline-block';
+
+                // ถ้านักเรียนล็อกอิน ให้เติมชื่อในฟอร์มให้อัตโนมัติ
+                if(document.getElementById('student-name').value === '') {
+                    document.getElementById('student-name').value = currentUser.fullName;
+                }
+            } else {
+                statusText.innerHTML = `👤 สถานะ: บุคคลทั่วไป`;
+                logoutBtn.style.display = 'none';
+            }
+        }
+
+        // 4. ออกจากระบบ (Logout)
+        function logout() {
+            currentUser = null;
+            updateUserUI();
+            alert('👋 ออกจากระบบเรียบร้อยแล้ว');
+        }
+
+        // 5. โหลดข้อมูลตาราง
+        async function loadData() {
+            const tbody = document.getElementById('data-table-body');
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">กำลังโหลดข้อมูล...</td></tr>';
+            try {
+                const response = await fetch(scriptURL);
+                allData = await response.json();
+                tbody.innerHTML = '';
+
+                if(allData.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">ยังไม่มีข้อมูล</td></tr>';
+                    return;
+                }
+
+                allData.forEach((item, index) => {
+                    const dateObj = new Date(item.timestamp);
+                    const dateStr = dateObj.toLocaleDateString('th-TH') + ' ' + dateObj.toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'});
+
+                    let formattedLoseTime = item.loseTime;
+                    if (typeof item.loseTime === 'string' && item.loseTime.includes('T')) {
+                         const loseTimeObj = new Date(item.loseTime);
+                         formattedLoseTime = loseTimeObj.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.';
+                    } else if (item.loseTime) {
+                         formattedLoseTime = String(item.loseTime) + ' น.';
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${dateStr}</td>
+                        <td>${item.studentName}</td>
+                        <td>${item.studentClass}</td>
+                        <td>${formattedLoseTime}</td>
+                        <td>${item.location}</td>
+                        <td>${item.tel}</td>
+                        <td style="white-space: nowrap;">
+                            <button class="action-btn" onclick="editData(${index})">✏️ แก้ไข</button>
+                            <button class="action-btn btn-danger" onclick="deleteData(${item.rowNumber})">🗑️ ลบ</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: red;">❌ โหลดข้อมูลล้มเหลว</td></tr>';
+            }
+        }
+
+        // 6. ตรวจสอบสิทธิ์การแก้ไข/ลบ
+        function checkAdminPermission() {
+            if (!currentUser) {
+                alert('🔒 กรุณาเข้าสู่ระบบก่อนทำรายการ');
+                document.getElementById('auth-section').scrollIntoView({ behavior: 'smooth' });
+                return false;
+            }
+            if (currentUser.role !== 'admin') {
+                alert('🚫 สิทธิ์ของคุณ (' + currentUser.role + ') ไม่สามารถแก้ไขหรือลบข้อมูลได้ เฉพาะ admin เท่านั้น');
+                return false;
+            }
+            return true;
+        }
+
+        function editData(index) {
+            if (!checkAdminPermission()) return;
+
+            const item = allData[index];
+            document.getElementById('student-name').value = item.studentName;
+            document.getElementById('student-class').value = item.studentClass;
+
+            let rawLoseTime = item.loseTime;
+            if (typeof rawLoseTime === 'string' && rawLoseTime.includes('T')) {
+                 const tObj = new Date(rawLoseTime);
+                 rawLoseTime = tObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            }
+            document.getElementById('lose-time').value = rawLoseTime;
+            document.getElementById('student-shoe').value = item.location;
+            document.getElementById('student-tel').value = item.tel;
+            document.getElementById('action').value = 'update';
+            document.getElementById('rowNumber').value = item.rowNumber;
+            document.getElementById('form-title').innerText = 'แก้ไขข้อมูลแจ้งรองเท้าหาย (Admin Mode)';
+            document.getElementById('find').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function resetForm() {
+            document.getElementById('shoe-form').reset();
+            document.getElementById('action').value = 'create';
+            document.getElementById('rowNumber').value = '';
+            document.getElementById('form-title').innerText = 'แบบฟอร์มส่งแจ้งเหตุรองเท้าหาย';
+        }
+
+        document.getElementById('shoe-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            try {
+                const response = await fetch(scriptURL, { method: 'POST', body: formData });
+                const result = await response.json();
+                if (result.result === "success") {
+                    alert('✅ ' + result.msg);
+                    resetForm();
+                    loadData();
+                }
+            } catch (error) {
+                alert('❌ ไม่สามารถบันทึกข้อมูลได้');
+            }
+        });
+
+        async function deleteData(rowNumber) {
+            if (!checkAdminPermission()) return;
+            if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลนี้?')) return;
+
+            const formData = new FormData();
+            formData.append('action', 'delete');
+            formData.append('rowNumber', rowNumber);
+
+            try {
+                const response = await fetch(scriptURL, { method: 'POST', body: formData });
+                const result = await response.json();
+                if (result.result === "success") {
+                    alert('🗑️ ลบข้อมูลเรียบร้อยแล้ว');
+                    loadData();
+                }
+            } catch (error) {
+                alert('❌ ลบข้อมูลไม่สำเร็จ');
+            }
+        }
+
+        window.onload = loadData;
+    </script>
+    </body>
+</html>
